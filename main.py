@@ -1,7 +1,4 @@
-import os
-from dotenv import load_dotenv
-
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -9,28 +6,8 @@ from telegram.ext import (
     ContextTypes,
 )
 
-load_dotenv()
-
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-
-
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    keyboard = [
-        [
-            InlineKeyboardButton("💬 AI", callback_data="ai"),
-            InlineKeyboardButton("🛠️ Tools", callback_data="tools"),
-        ],
-        [
-            InlineKeyboardButton("🌐 Search", callback_data="search"),
-            InlineKeyboardButton("⚙️ Settings", callback_data="settings"),
-        ],
-    ]
-
-    await update.message.reply_text(
-        "👋 Welcome to *HuziBot*!\n\nChoose an option:",
-        parse_mode="Markdown",
-        reply_markup=InlineKeyboardMarkup(keyboard),
-    )
+from config.config import BOT_TOKEN
+from handlers.start import start
 
 
 async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -54,7 +31,10 @@ def main():
     app.add_handler(CallbackQueryHandler(button))
 
     print("🚀 HuziBot is running...")
-    app.run_polling()
+    app.run_polling(
+    drop_pending_updates=True,
+    close_loop=False,
+)
 
 
 if __name__ == "__main__":
