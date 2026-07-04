@@ -8,20 +8,26 @@ from telegram.ext import (
 
 from config.config import BOT_TOKEN
 from handlers.start import start
+from handlers.ai import ai
 
 
 async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
+    if query.data == "ai":
+        await ai(update, context)
+        return
+
     responses = {
-        "ai": "🤖 AI module coming soon...",
         "tools": "🛠️ Tools coming soon...",
         "search": "🌐 Search coming soon...",
         "settings": "⚙️ Settings coming soon...",
     }
 
-    await query.edit_message_text(responses.get(query.data, "Unknown option."))
+    await query.edit_message_text(
+        responses.get(query.data, "Unknown option.")
+    )
 
 
 def main():
@@ -31,10 +37,11 @@ def main():
     app.add_handler(CallbackQueryHandler(button))
 
     print("🚀 HuziBot is running...")
+
     app.run_polling(
-    drop_pending_updates=True,
-    close_loop=False,
-)
+        drop_pending_updates=True,
+        close_loop=False,
+    )
 
 
 if __name__ == "__main__":
