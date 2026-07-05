@@ -1,18 +1,9 @@
 from telegram import Update
-<<<<<<< HEAD
-from telegram.ext import ContextTypes
-
-async def ai(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.callback_query.answer()
-
-    await update.callback_query.message.reply_text(
-        "🧠 AI Mode is coming online...\n\nSoon you'll be able to chat with me!"
-    )
-=======
 from telegram.constants import ChatAction
 from telegram.ext import ContextTypes
 
 from services.ai_service import ask_ai
+from database.memory import user_memory
 
 
 async def ai(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -31,7 +22,10 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not context.user_data.get("ai_mode"):
         return
 
+    user_id = update.effective_user.id
     user_message = update.message.text
+
+    history = user_memory.get(user_id, "")
 
     await context.bot.send_chat_action(
         chat_id=update.effective_chat.id,
@@ -39,8 +33,25 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
     try:
-        response = await ask_ai(user_message)
+        response = await ask_ai(
+            f"""
+Previous conversation:
+{history}
+
+User:
+{user_message}
+"""
+        )
+
+        user_memory[user_id] = (
+            history
+            + f"\nUser: {user_message}"
+            + f"\nHuziBot: {response}"
+        )
+
         await update.message.reply_text(response)
-    except Exception as e:
-        await update.message.reply_text(f"❌ Error:\n{e}")
->>>>>>> 3485235 (🧠 Integrated Gemini AI into HuziBot)
+
+    except Exception:
+        await update.message.reply_text(
+            "⚠️ I'm a little overloaded right now. Give me a few seconds and try again."
+        )
