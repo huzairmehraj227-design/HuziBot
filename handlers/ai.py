@@ -3,7 +3,7 @@ from telegram.constants import ChatAction
 from telegram.ext import ContextTypes
 
 from services.ai_service import ask_ai
-from database.memory import user_memory
+from database.sqlite_db import get_memory, save_memory
 
 
 async def ai(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -25,7 +25,7 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     user_message = update.message.text
 
-    history = user_memory.get(user_id, "")
+    history = get_memory(user_id)
 
     await context.bot.send_chat_action(
         chat_id=update.effective_chat.id,
@@ -43,11 +43,12 @@ User:
 """
         )
 
-        user_memory[user_id] = (
-            history
-            + f"\nUser: {user_message}"
-            + f"\nHuziBot: {response}"
+        history += (
+            f"\nUser: {user_message}"
+            f"\nHuziBot: {response}"
         )
+
+        save_memory(user_id, history)
 
         await update.message.reply_text(response)
 
